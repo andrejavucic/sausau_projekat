@@ -10,7 +10,6 @@ wheels/
 .venv
 
 # ML - Bankovni krediti predikcija
-*.csv
 *.xlsx
 *.parquet
 *.pkl
@@ -19,7 +18,6 @@ wheels/
 .env
 
 # Folderi sa podacima i modelima
-data/
 datasets/
 models/
 saved_models/
