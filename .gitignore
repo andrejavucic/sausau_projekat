@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# ML - Bankovni krediti predikcija
+*.csv
+*.xlsx
+*.parquet
+*.pkl
+*.pth
+*.pt
+.env
+
+# Folderi sa podacima i modelima
+data/
+datasets/
+models/
+saved_models/
