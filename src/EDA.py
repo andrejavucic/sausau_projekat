@@ -13,6 +13,25 @@ def pokreni_edu():
     sns.set_style("whitegrid")
     plt.rcParams['figure.figsize'] = (10, 6)
 
+    # ========== DODAJ SAMO JEDAN GRAFIK ZA PREGLED SVIH NUMERICKIH PODATAKA ==========
+    
+    # 1. Histogrami za sve numeričke kolone (vidiš odmah distribuciju)
+    numeric_cols = ['age', 'campaign', 'pdays', 'previous', 'emp.var.rate', 'nr.employed', 'cons.price.idx', 'cons.conf.idx', 'euribor3m']
+    
+    fig, axes = plt.subplots(3, 3, figsize=(15, 12))
+    axes = axes.flatten()
+    
+    for i, col in enumerate(numeric_cols):
+        sns.histplot(df[col], kde=True, ax=axes[i], color='skyblue', bins=30)
+        axes[i].set_title(f'Distribucija: {col}', fontweight='bold')
+        axes[i].set_xlabel(col)
+    
+    plt.suptitle('Pregled svih numeričkih podataka', fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig('EDA_figures/00_all_numeric_distributions.png', dpi=150)
+    plt.close()
+
+    """ 
     # ============================================
     # 1. DISTRIBUCIJA CILJNE PROMENLJIVE (y je 0/1)
     # ============================================
@@ -30,6 +49,7 @@ def pokreni_edu():
     plt.tight_layout()
     plt.savefig('EDA_figures/01_target_distribution.png', dpi=150)
     plt.close()
+    """
 
     # ============================================
     # 2. PRETPLATA PO KATEGORIJSKIM ATRIBUTIMA
@@ -93,6 +113,7 @@ def pokreni_edu():
     plt.savefig('EDA_figures/05_age_boxplot.png', dpi=150)
     plt.close()
 
+    """
     # 3b. Broj kontakata - boxplot
     plt.figure(figsize=(10, 6))
     sns.boxplot(data=df, x='y', y='campaign', hue='y',
@@ -104,6 +125,7 @@ def pokreni_edu():
     plt.tight_layout()
     plt.savefig('EDA_figures/06_campaign_boxplot.png', dpi=150)
     plt.close()
+    """
 
     # ============================================
     # 4. STOPA PRETPLATE PO GRUPAMA
@@ -143,6 +165,9 @@ def pokreni_edu():
     # ============================================
     # 5. KORELACIONA MATRICA
     # ============================================
+    #  1 -> jaka direktna zavisnost
+    # -1 -> jaka obrnuta zavisnost
+    #  0 -> nemaju uticaja jedna na drugu
     numeric_cols = ['age', 'campaign', 'pdays', 'previous', 'emp.var.rate',
                     'cons.price.idx', 'cons.conf.idx', 'euribor3m', 'nr.employed']
 

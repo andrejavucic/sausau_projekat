@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import IsolationForest
 import joblib
 import os
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 
 # Kreiraj potrebne direktorijume ako ne postoje
 os.makedirs('data', exist_ok=True)
@@ -28,7 +29,7 @@ df = df.dropna()    #izbaci uzorak ako ima neku praznu kolonu
 df = df.drop_duplicates()  #izbaci duplikate
 
 # ukloni duration (poznat tek nakon zavrsetka poziva)
-df = df.drop(columns=['duration'])   
+df = df.drop(columns=['duration', 'day_of_week'])   
 
 
 """ ========== PREPROCESSING ========== """
@@ -43,8 +44,15 @@ print(f"  pdays vrednosti: min = {df['pdays'].min()}, max = {df['pdays'].max()}"
 #print(f"  Broj kontaktiranih: {df['pdays_contacted'].sum()}") #br kontaktiranih
 
 # prebroj koliko imamo unkown
-#categorical_cols = ["job", "marital", "education", "default", "housing", "loan","contact", "poutcome", "month", "day_of_week" ]
+# nema ih u month, poutcome i contact
+# u ostalim ih ima podosta (najmanje u martial -> 80)
+#categorical_cols = ["job", "marital", "education", "default", "housing", "loan","contact", "poutcome", "month" ]
 #print((df[categorical_cols] == 'unknown').sum())
+
+#poencijalni outlineri -> ne utice na izlaz (nema granica za yes po godinama)
+#print("Maloletni: ", df.loc[df['age'] < 18, ['age', 'y']])  
+#print("Prestari: ", df.loc[df['age'] > 85, ['age', 'y']])
+#print("Prestari: ", df.loc[df['age'] > 90, ['age', 'y']])
 
 """
 ukloni previse slucajeva: 
@@ -52,7 +60,6 @@ ukloni previse slucajeva:
     campaign: 2392 outliera (donja granica=1, gornja granica=6)
     previous: 282 outliera (gornja granica=2, 99. percentil)
     Ukupno uklonjeno redova sa outlierima: 3147
-    Broj redova nakon uklanjanja outliera: 38029
 
 # ---------------- OUTLINERI ------------------
 total_outliers_removed = 0
@@ -124,20 +131,20 @@ print("y_train:", y_train.shape)
 numeric_cols = X_train.select_dtypes(include=['number']).columns
 
 # izbacujemo 3%
-iso_forest = IsolationForest(contamination=0.03, random_state=42)
+#iso_forest = IsolationForest(contamination=0.03, random_state=42)
 
 # Treniramo Isolation Forest i predviđamo anomalije SAMO na trening skupu
-outlier_preds = iso_forest.fit_predict(X_train[numeric_cols])
+#outlier_preds = iso_forest.fit_predict(X_train[numeric_cols])
 
 # Zadržavamo samo normalne redove (tamo gde je rezultat 1) u X_train i y_train
 # -1(anomalije) odbacujemo
-X_train = X_train[outlier_preds == 1]
-y_train = y_train[outlier_preds == 1]
+#X_train = X_train[outlier_preds == 1]
+#y_train = y_train[outlier_preds == 1]
 
 # oko 1000 primera je uklonio -> moze se podesavati const
-print("Nakon čišćenja anomalija pomoću Isolation Forest-a:")
-print("X_train:", X_train.shape)
-print("y_train:", y_train.shape)
+#print("Nakon čišćenja anomalija pomoću Isolation Forest-a:")
+#print("X_train:", X_train.shape)
+#print("y_train:", y_train.shape)
 
 
 nominal_features = [
@@ -145,25 +152,15 @@ nominal_features = [
     'marital',
     'contact',
     'month',
-    'day_of_week',
+    #'day_of_week',
     'poutcome',
     'default',
     'housing',
-    'loan'
+    'loan',
+    'education'
 ]
 
-education_order = [[
-    'unknown',
-    'illiterate',
-    'basic.4y',
-    'basic.6y',
-    'basic.9y',
-    'high.school',
-    'professional.course',
-    'university.degree'
-]]
-
-# handle_unknown - ne rusi program ako se pojavi nova kategorija
+# handle_unknown - ne rusi program ako se pojavi kategorija koju ranije nije video
 # drop - izbaci jednu kolonu (ta je podrazumevana ako su sve ostale 0)
 preprocessor = ColumnTransformer(
     transformers=[
@@ -172,10 +169,11 @@ preprocessor = ColumnTransformer(
             OneHotEncoder(drop='first', handle_unknown='ignore'),
             nominal_features
         ),
+        # SKLARIRANJE - za odredjene modele 
         (
-            'education',
-            OrdinalEncoder(categories=education_order),
-            ['education']
+            'numeric',  # DODATI OVAJ TRANSFORMER ZA SKALIRANJE
+            StandardScaler(),  # ili MinMaxScaler(), RobustScaler()
+            numeric_cols    #samo kolone sa br vr
         )
     ],
     remainder='passthrough' #ako ima neke koje ovde nisu obradjene, ostavi takve
@@ -204,7 +202,7 @@ test_df.to_csv('data/processed/bank-additional-test.csv', index=False)
 
 
 joblib.dump(preprocessor, 'preprocessors/preprocessor.pkl')    #sacuvaj preprocesor
-joblib.dump(iso_forest, 'preprocessors/isolation_forest.pkl') #sacuvaj isolatin forest model
+#joblib.dump(iso_forest, 'preprocessors/isolation_forest.pkl') #sacuvaj isolatin forest model
 
 np.save('data/processed/X_train_preprocessed.npy', X_train_preprocessed)
 np.save('data/processed/y_train.npy', y_train.values)
