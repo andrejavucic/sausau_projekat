@@ -18,8 +18,6 @@ wheels/
 .env
 
 # Folderi sa podacima i modelima
-datasets/
-models/
 saved_models/
 preprocessors/
 EDA_figures/
