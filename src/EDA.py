@@ -31,7 +31,7 @@ def pokreni_edu():
     plt.savefig('EDA_figures/00_all_numeric_distributions.png', dpi=150)
     plt.close()
 
-    """ 
+    
     # ============================================
     # 1. DISTRIBUCIJA CILJNE PROMENLJIVE (y je 0/1)
     # ============================================
@@ -49,7 +49,7 @@ def pokreni_edu():
     plt.tight_layout()
     plt.savefig('EDA_figures/01_target_distribution.png', dpi=150)
     plt.close()
-    """
+    
 
     # ============================================
     # 2. PRETPLATA PO KATEGORIJSKIM ATRIBUTIMA
@@ -97,6 +97,46 @@ def pokreni_edu():
     plt.tight_layout()
     plt.savefig('EDA_figures/04_month_distribution.png', dpi=150)
     plt.close()
+
+    # ============================================
+    # 2d. Pretplata po ishodu prethodne kampanje (POUTCOME)
+    # poutcome - ishod prethodne kampanje (da li su bili preplaceni?)
+
+    # ZAKLJUCAK: 
+    #   -oni koji su u prethodnoj kampanji bili preplaceni (poucome) -> 65% da ce opet biti
+    #   -oni koji nisu bili preplaceni (failure) -> 14% da ce se sada preplatiti
+    #   -oni koji nisu ni ucestvovali, nisu bili kontatirani (nonexistent) -> 9%
+    # ============================================
+    plt.figure(figsize=(10, 6))
+    poutcome_order = ['unknown', 'failure', 'success']
+    poutcome_order = [p for p in poutcome_order if p in df['poutcome'].unique()]
+    sns.countplot(data=df, x='poutcome', hue='y', order=poutcome_order,
+                palette=['skyblue', 'salmon'])
+    plt.title('Pretplata po ishodu prethodne kampanje', fontsize=14, fontweight='bold')
+    plt.xlabel('Ishod prethodne kampanje')
+    plt.ylabel('Broj klijenata')
+    plt.legend(title='Pretplata', labels=['Ne', 'Da'])
+    plt.tight_layout()
+    plt.savefig('EDA_figures/10_poutcome_distribution.png', dpi=150)
+    plt.close()
+
+    # Stopa pretplate po poutcome
+    print()
+    poutcome_rate = df.groupby('poutcome')['y'].mean() * 100
+    print("\nStopa pretplate (%) po ishodu prethodne kampanje:")
+    print(poutcome_rate.sort_values(ascending=False))
+
+    plt.figure(figsize=(8, 6))
+    poutcome_rate.sort_values().plot(kind='barh', color='lightgreen', edgecolor='black')
+    plt.title('Stopa pretplate (%) po ishodu prethodne kampanje', fontsize=14, fontweight='bold')
+    plt.xlabel('Stopa pretplate (%)')
+    plt.ylabel('Ishod prethodne kampanje')
+    for i, v in enumerate(poutcome_rate.sort_values()):
+        plt.text(v + 0.5, i, f'{v:.1f}%', va='center')
+    plt.tight_layout()
+    plt.savefig('EDA_figures/11_poutcome_rate.png', dpi=150)
+    plt.close()
+    print()
 
     # ============================================
     # 3. NUMERICKI ATRIBUTI
@@ -180,9 +220,6 @@ def pokreni_edu():
     plt.tight_layout()
     plt.savefig('EDA_figures/09_correlation_heatmap.png', dpi=150)
     plt.close()
-
-    print("[EDA] Grafikoni sačuvani u: reports/figures/")
-
 
 if __name__ == "__main__":
     pokreni_edu()

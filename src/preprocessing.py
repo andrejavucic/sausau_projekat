@@ -4,24 +4,25 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import IsolationForest
 import joblib
 import os
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import SMOTE
 
 # Kreiraj potrebne direktorijume ako ne postoje
 os.makedirs('data', exist_ok=True)
 os.makedirs('preprocessors', exist_ok=True)
 os.makedirs('data/raw', exist_ok=True)
 os.makedirs('data/processed', exist_ok=True)
+print()
 
 """ ========== UCITAVANJE PODATAKA ========== """
 df = pd.read_csv('data/raw/bank-additional-full.csv', sep=';')
 print(f"Učitano {df.shape[0]} redova i {df.shape[1]} kolona.")
 #print(df.head()) #vraca prvih 5 redova
+print()
 
 #print(df.isna().sum()) #ispisi koliko imas ukupno nedostajecih vrednosti
 # NEMA IH
@@ -29,7 +30,17 @@ df = df.dropna()    #izbaci uzorak ako ima neku praznu kolonu
 df = df.drop_duplicates()  #izbaci duplikate
 
 # ukloni duration (poznat tek nakon zavrsetka poziva)
-df = df.drop(columns=['duration', 'day_of_week'])   
+df = df.drop(columns=['duration'])   
+
+"""
+    IZ MATRICE ZAVISNOSTI (KORELACIJE):
+    - veliku zavisnost imaju euribor3m i emp.var.rate (0.97)
+    - isto i za euribor3m i nr.employed (0.95)
+    - nr.employed i emp.var.rate (0.91)
+
+    ZAKLJUCAK: mogu se izbaciti 2/3 -> prenose istu info
+"""
+df = df.drop(columns=['emp.var.rate', 'nr.employed'])
 
 
 """ ========== PREPROCESSING ========== """
@@ -39,9 +50,10 @@ df = df.drop(columns=['duration', 'day_of_week'])
 df['pdays_contacted'] = (df['pdays'] != 999).astype(int)
 # Postavljamo 999 na -1 
 df['pdays'] = df['pdays'].replace(999, -1)
-#print("pojavljivanja pdays=999: ", (df['pdays'] == 999).sum()) #nakon izbacivanja 
-print(f"  pdays vrednosti: min = {df['pdays'].min()}, max = {df['pdays'].max()}")   #min i max vr
-#print(f"  Broj kontaktiranih: {df['pdays_contacted'].sum()}") #br kontaktiranih
+print("pojavljivanja pdays=999 : ", (df['pdays'] == 999).sum())     #nakon izbacivanja -> 0 
+print(f"pdays vrednosti: min = {df['pdays'].min()}, max = {df['pdays'].max()}")   #min i max vr
+print(f"Broj kontaktiranih: {df['pdays_contacted'].sum()}") #br kontaktiranih -> 1515
+print()
 
 # prebroj koliko imamo unkown
 # nema ih u month, poutcome i contact
@@ -117,14 +129,18 @@ df['y'] = df['y'].map({'yes': 1, 'no': 0})
 
 X = df.drop(columns=['y'])
 y = df['y']
+print()
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-    random_state=42, stratify=y  #balansira odnos yes/no u train i test
-)
 
-print("Pre ciscenja anomalija:")
+# stratify=y  balansira odnos yes/no u train i test
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
+# → 80/10/10
+
+print("Pre enkodiranja:")
 print("X_train:", X_train.shape)
 print("y_train:", y_train.shape)
+print()
 
 # -------------- ANOMALIJE ---------------
 #izdvojimo samo numericke kolone
@@ -152,7 +168,7 @@ nominal_features = [
     'marital',
     'contact',
     'month',
-    #'day_of_week',
+    'day_of_week',
     'poutcome',
     'default',
     'housing',
@@ -165,8 +181,8 @@ nominal_features = [
 preprocessor = ColumnTransformer(
     transformers=[
         (
-            'nominal',
-            OneHotEncoder(drop='first', handle_unknown='ignore'),
+            'nominal',      # sparse_output -> da bih ga naterala da mi vrati gustu matricu (sta god to bilo)
+            OneHotEncoder(drop='first', handle_unknown='ignore', sparse_output=False),
             nominal_features
         ),
         # SKLARIRANJE - za odredjene modele 
@@ -181,20 +197,55 @@ preprocessor = ColumnTransformer(
 
 # transform - primeni naucena pravila (pozivamo enkoder)
 X_train_preprocessed = preprocessor.fit_transform(X_train)
+X_val_preprocessed = preprocessor.transform(X_val)
 X_test_preprocessed = preprocessor.transform(X_test)
 
 # pokaze kako je skocio br kolona (zbog enkodiranja)
 print("Train shape nakon preprocessing-a:", X_train_preprocessed.shape)
+print("Validation shape nakon preprocessing-a:", X_val_preprocessed.shape)
 print("Test shape nakon preprocessing-a:", X_test_preprocessed.shape)
+print()
 
+# smote - vestacki pravi nove pod u datasetu kako bi izjednacio odnos yes/no za y
+# ali samo za train skup
+smote = SMOTE(random_state=42)
+X_train_resampled, y_train_resampled = smote.fit_resample(X_train_preprocessed, y_train)
+
+# provera balansa y (nakon smote)
+print(f"Pre SMOTE: {X_train_preprocessed.shape}, DA={sum(y_train==1)}, NE={sum(y_train==0)}" )
+print(f"Posle SMOTE: {X_train_resampled.shape}, DA={sum(y_train_resampled==1)}, NE={sum(y_train_resampled==0)}")
+print()
+
+"""
+-> PROVERA DA LI SU SVI FOLAT64 -> JESU
+-> nz ni sto mi onda pravi problem pri pokretanju treninga
+
+print("\n" + "="*50)
+print("PROVERA TIPOVA PRE ČUVANJA:")
+print("="*50)
+print(f"X_train_preprocessed dtype: {X_train_preprocessed.dtype}")
+print(f"X_train_resampled dtype: {X_train_resampled.dtype}")
+print(f"X_val_preprocessed dtype: {X_val_preprocessed.dtype}")
+print(f"X_test_preprocessed dtype: {X_test_preprocessed.dtype}")
+
+# Ako je object, onda:
+if X_train_resampled.dtype == object:
+    print("⚠️ X_train_resampled je object tip - treba konvertovati!")
+    X_train_resampled = X_train_resampled.astype(np.float32)
+    print("✅ Konvertovano u float32")
+"""
 
 # ------------- CUVANJE PODATAKA ----------------
 df.to_csv('data/processed/bank-additional-cleaned.csv', index=False)
 
-# cuvanje train i test nekodiranih skupova
+# cuvanje train, test i val nekodiranih skupova
 train_df = X_train.copy()
 train_df['y'] = y_train
 train_df.to_csv('data/processed/bank-additional-train.csv', index=False)
+
+val_df = X_val.copy()
+val_df['y'] = y_val
+val_df.to_csv('data/processed/bank-additional-val.csv', index=False)
 
 test_df = X_test.copy()
 test_df['y'] = y_test
@@ -204,7 +255,21 @@ test_df.to_csv('data/processed/bank-additional-test.csv', index=False)
 joblib.dump(preprocessor, 'preprocessors/preprocessor.pkl')    #sacuvaj preprocesor
 #joblib.dump(iso_forest, 'preprocessors/isolation_forest.pkl') #sacuvaj isolatin forest model
 
+# cuvamo nazive atributa, kasnije za poredjenje koji nam je najznacniji
+feature_names = preprocessor.get_feature_names_out()
+np.save('data/processed/feature_names.npy', feature_names)
+
+# .astype(np.float32)   pretvara brojeve u float32 (decimalni broj, 32 bita)
+# zbog nekih object problema kada se pokrece trening -> pravilo mi prob nakon smote
+# iako smo pre podele sve enkodirali, ali navodno zbog smote moze nest da se zakomplikuje
 np.save('data/processed/X_train_preprocessed.npy', X_train_preprocessed)
-np.save('data/processed/y_train.npy', y_train.values)
+np.save('data/processed/y_train.npy', y_train)
+
+np.save('data/processed/X_train_resampled.npy', X_train_resampled)
+np.save('data/processed/y_train_resampled.npy', y_train_resampled)
+
+np.save('data/processed/X_val_preprocessed.npy', X_val_preprocessed)   
+np.save('data/processed/y_val.npy', y_val.values)
+
 np.save('data/processed/X_test_preprocessed.npy', X_test_preprocessed)
 np.save('data/processed/y_test.npy', y_test.values)

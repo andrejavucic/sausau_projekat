@@ -1,0 +1,30 @@
+============================================================
+ANALIZA NAJVAŽNIJIH FAKTORA ZA PRETPLATU
+============================================================
+
+RANDOM FOREST - Top 10 faktora:
+----------------------------------------
+ 1. numeric__euribor3m             0.1820
+ 2. numeric__campaign              0.0811
+ 3. numeric__cons.conf.idx         0.0799
+ 4. nominal__contact_telephone     0.0666
+ 5. nominal__default_unknown       0.0607
+ 6. numeric__pdays                 0.0477
+ 7. numeric__cons.price.idx        0.0459
+ 8. nominal__housing_yes           0.0447
+ 9. nominal__loan_yes              0.0369
+10. numeric__age                   0.0345
+
+LOGISTIC REGRESION - Top 10 faktora:
+----------------------------------------
+ 1. nominal__month_mar             1.0841 (Pozitivan uticaj)
+ 2. numeric__euribor3m             0.8631 (Negativan uticaj)
+ 3. nominal__contact_telephone     0.6893 (Negativan uticaj)
+ 4. nominal__month_may             0.6334 (Negativan uticaj)
+ 5. nominal__job_unemployed        0.5451 (Negativan uticaj)
+ 6. nominal__month_oct             0.4725 (Pozitivan uticaj)
+ 7. nominal__job_housemaid         0.3895 (Negativan uticaj)
+ 8. nominal__poutcome_success      0.3794 (Pozitivan uticaj)
+ 9. nominal__month_aug             0.3779 (Negativan uticaj)
+10. nominal__default_unknown       0.3751 (Negativan uticaj)
+
