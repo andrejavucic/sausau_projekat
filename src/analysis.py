@@ -377,3 +377,93 @@ ax.grid(axis='y', alpha=0.3)
 plt.tight_layout()
 plt.savefig("analysis/figures/train_vs_test_diagnostic.png", dpi=150)
 plt.close()
+
+"""
+# ==================== PROVERA PRAGA ============
+X_val = np.load("data/processed/X_val_preprocessed.npy")   
+y_val = np.load("data/processed/y_val.npy")
+threshold_results = {}
+
+for name, r in results.items():
+    model = r["model"]
+    
+    # ===== KORAK 1: Pronađi optimalni prag na VALIDACIONOM skupu =====
+    y_val_prob = model.predict_proba(X_val)[:, 1]
+    
+    # Precision-Recall kriva na validacionom skupu
+    precisions_val, recalls_val, thresholds_val = precision_recall_curve(y_val, y_val_prob)
+    
+    # F1 za svaki prag (na validaciji)
+    f1_scores_val = 2 * (precisions_val[:-1] * recalls_val[:-1]) / (precisions_val[:-1] + recalls_val[:-1] + 1e-10)
+    
+    # Najbolji prag na VALIDACIJI
+    best_idx_val = np.argmax(f1_scores_val)
+    best_threshold = thresholds_val[best_idx_val]
+    best_f1_val = f1_scores_val[best_idx_val]
+    
+    # ===== KORAK 2: Testiraj taj prag na TEST skupu =====
+    y_test_prob = model.predict_proba(X_test)[:, 1]
+    y_test_pred_optimized = (y_test_prob >= best_threshold).astype(int)
+    
+    # Metrike na TEST skupu sa optimalnim pragom (pronadjenim na validaciji)
+    opt_accuracy = accuracy_score(y_test, y_test_pred_optimized)
+    opt_precision = precision_score(y_test, y_test_pred_optimized)
+    opt_recall = recall_score(y_test, y_test_pred_optimized)
+    opt_f1 = f1_score(y_test, y_test_pred_optimized)
+    
+    # Default prag (0.5) na test skupu
+    y_test_pred_default = (y_test_prob >= 0.5).astype(int)
+    default_f1_test = f1_score(y_test, y_test_pred_default)
+    default_recall_test = recall_score(y_test, y_test_pred_default)
+    default_precision_test = precision_score(y_test, y_test_pred_default)
+    
+    # Sačuvaj rezultate
+    threshold_results[name] = {
+        "best_threshold": best_threshold,
+        "best_threshold_val_f1": best_f1_val,  # F1 na validaciji sa optimalnim pragom
+        
+        # Metrike na TEST skupu sa default pragom (0.5)
+        "default_f1": default_f1_test,
+        "default_recall": default_recall_test,
+        "default_precision": default_precision_test,
+        
+        # Metrike na TEST skupu sa optimalnim pragom (pronadjenim na validaciji)
+        "optimized_f1": opt_f1,
+        "optimized_recall": opt_recall,
+        "optimized_precision": opt_precision,
+        "improvement": opt_f1 - default_f1_test,
+        
+        # Za vizualizaciju
+        "y_val_prob": y_val_prob,
+        "y_test_prob": y_test_prob,
+        "precisions_val": precisions_val,
+        "recalls_val": recalls_val,
+        "thresholds_val": thresholds_val,
+        "f1_scores_val": f1_scores_val,
+        "best_idx_val": best_idx_val
+    }
+    
+    print(f"\n{name}:")
+    print(f"  Optimalni prag (iz VALIDACIJE): {best_threshold:.4f} (F1 na validaciji: {best_f1_val:.4f})")
+    print(f"  TEST - Default prag (0.5): F1={default_f1_test:.4f}, Recall={default_recall_test:.4f}")
+    print(f"  TEST - Optimalni prag:     F1={opt_f1:.4f}, Recall={opt_recall:.4f}")
+    improvement = opt_f1 - default_f1_test
+    sign = "+" if improvement >= 0 else ""
+    print(f"  Poboljšanje na TEST: {sign}{improvement:.4f} F1")
+
+# ========== 7. NAJBOLJI MODEL SA OPTIMALNIM PRAGOM ==========
+print("\n" + "="*60)
+print("NAJBOLJI MODEL NAKON OPTIMIZACIJE PRAGA")
+print("="*60)
+
+# Poredi po optimizovanom F1 na TEST skupu
+best_optimized = max(threshold_results.items(), key=lambda x: x[1]['optimized_f1'])
+best_name, best_data = best_optimized
+
+print(f"\n🏆 Najbolji model sa optimizovanim pragom: {best_name}")
+print(f"   Optimalni prag (iz VALIDACIJE): {best_data['best_threshold']:.4f}")
+print(f"   TEST F1: {best_data['optimized_f1']:.4f} (bio {best_data['default_f1']:.4f})")
+print(f"   TEST Recall: {best_data['optimized_recall']:.4f} (bio {best_data['default_recall']:.4f})")
+print(f"   TEST Precision: {best_data['optimized_precision']:.4f} (bio {best_data['default_precision']:.4f})")
+print ()
+"""

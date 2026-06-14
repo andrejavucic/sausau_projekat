@@ -4,6 +4,18 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 import os
+from sklearn.feature_selection import (
+    SelectKBest, f_classif,
+    RFE, RFECV,
+    mutual_info_classif
+)
+from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score, f1_score, roc_auc_score,
+    recall_score, precision_score, classification_report
+)
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -21,6 +33,10 @@ y_test = np.load("data/processed/y_test.npy")
 # Učitaj originalne trening podatke (za shape ako zatreba)
 X_train_orig = np.load("data/processed/X_train_preprocessed.npy")
 y_train_orig = np.load("data/processed/y_train.npy")
+
+X_val   = np.load("data/processed/X_val_preprocessed.npy")
+y_val   = np.load("data/processed/y_val.npy")
+ 
 
 
 # ========== 2. UČITAVANJE NAZIVA ATRIBUTA ==========

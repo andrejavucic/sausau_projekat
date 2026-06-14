@@ -27,10 +27,12 @@ os.makedirs("analysis/figures", exist_ok=True)
 sns.set_style("whitegrid")
 
 # ========== 1. Učitavanje ==========
-# za train ucitavamo one SMOTE pod
-# allow_picke -> dozvoljavamo ucitavanje svih tipova
-X_train = np.load("data/processed/X_train_resampled.npy")   
+X_train = np.load("data/processed/X_train_resampled.npy")   # SMOTE pod
 y_train = np.load("data/processed/y_train_resampled.npy")
+
+#X_train = np.load("data/processed/X_train_preprocessed.npy")  # originalni, ne resampled
+#y_train = np.load("data/processed/y_train.npy")
+
 X_val = np.load("data/processed/X_val_preprocessed.npy")   
 y_val = np.load("data/processed/y_val.npy") 
 X_test  = np.load("data/processed/X_test_preprocessed.npy")
@@ -44,7 +46,7 @@ y_test  = np.load("data/processed/y_test.npy")
 # n_jobs -> koliko procesorskoh jezgra koristimo (-1 -> sva jezgra)
 models_config = {
     "Logistic Regression": {
-        "model": LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42,
+        "model": LogisticRegression(max_iter=2000,random_state=42, class_weight="balanced",
                                     C=0.1,
                                     penalty='l1',
                                     solver='liblinear'
@@ -74,7 +76,7 @@ models_config = {
 #        },
     },
     "KNN": {
-        "model": KNeighborsClassifier(n_jobs=-1,
+        "model": KNeighborsClassifier(n_jobs=-1, 
                                         n_neighbors=19,
                                         p=1,
                                        weights='distance'
@@ -141,7 +143,7 @@ models_config = {
     # smanjenje varijanse, osetljiv na hiperparametre, umanjuje uticaj jednog singularnog stabla
     # kod klasifikacije -> svako stablo glasa za 1 klasu -> vecinska se bira
      "Random Forest": { 
-        "model": RandomForestClassifier(random_state=42, class_weight="balanced", n_jobs=-1,
+        "model": RandomForestClassifier(random_state=42, n_jobs=-1, class_weight="balanced",
                                         n_estimators=50,
                                         max_depth=15,
                                         min_samples_split=2,
@@ -193,20 +195,20 @@ models_config = {
                                             ),
         "grid" : {},
 #        "grid": {
-#            "n_estimators": [50, 100, 150],
+#            "n_estimators": [100, 150],
             
             # korak ucenja -> koliko svako stablo utice na konacnu predikciju
             # manji learning_rate zahteva vise stabala -> kompenzacija parametara
             # kroz vise iteracija, ucimo manje, smanjuje sansu od overfittinga, uci polako-stabilnije
             # moze i obnuto, ali je rizicnije zbog oscilacija
-#            "learning_rate": [0.01, 0.05, 0.1, 0.2],
+#            "learning_rate": [0.03, 0.05, 0.1],
             
             # max dubina - obicno mala (3-5) jer GB ne voli duboka stabla
-#            "max_depth": [3, 4, 5],
+#            "max_depth": [2, 3, 4],
             
             # Subsampling - koji procenat tr podataka ce svako stablo koristiti za ucenje
             # jer se vrsi sekvencijalno, pod se ne ponavljaju -> cilj smanjenje overfittinga
-#            "subsample": [0.7, 0.8, 0.9, 1.0],
+#            "subsample": [0.8, 1.0],
             
             # min broj uzoraka za podelu
 #            "min_samples_split": [2, 5],
@@ -326,7 +328,7 @@ best_name = ""
 best_model_obj = None
 for name, r in results.items():
     if r['val_f1'] > best_val_f1:
-        best_val_f1 = r['f1']
+        best_val_f1 = r['val_f1']
         best_name = name
         best_model_obj = r['model']
 
