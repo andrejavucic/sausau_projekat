@@ -1,0 +1,16 @@
+- probala da dodam atribu day_of_week -> rez slicni ko i bez toga
+    (nema preteranog uticaja na izlaz)
+
+- PROBA 1: ukloni class_weight = 'balanced'  -> dobijem identicne rez kao i bez toga
+        (svakako mi smote vec izbalansira te klase)
+
+- PROBA 2: bez smote, sa class_weight = 'balanced' 
+            => ali na parametrima koji su bili naj na smote podacima
+            -> daje losije rez
+
+- Ovde imam izbacena 2/3 kolerisana ATRIBUTA
+
+ZAKLJUCAK: day_of_week svj da li imamo ili ne
+
+--------------------------------------------------------------
+dobijem bolje rez kada ostavim samo euribor3m, nego nr.employment ?????

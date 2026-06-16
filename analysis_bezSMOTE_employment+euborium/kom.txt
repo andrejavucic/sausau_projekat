@@ -1,0 +1,4 @@
+- radim bez smote, sa employment
+
+- stabilniji rez nego sa smote (jer smote vljd ne radi dobro sa veoma kolerisnaim atributima)
+- ali su sveukupno i dalje losi rezultati

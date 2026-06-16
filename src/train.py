@@ -27,11 +27,11 @@ os.makedirs("analysis/figures", exist_ok=True)
 sns.set_style("whitegrid")
 
 # ========== 1. Učitavanje ==========
-X_train = np.load("data/processed/X_train_resampled.npy")   # SMOTE pod
-y_train = np.load("data/processed/y_train_resampled.npy")
+#X_train = np.load("data/processed/X_train_resampled.npy")   # SMOTE pod
+#y_train = np.load("data/processed/y_train_resampled.npy")
 
-#X_train = np.load("data/processed/X_train_preprocessed.npy")  # originalni, ne resampled
-#y_train = np.load("data/processed/y_train.npy")
+X_train = np.load("data/processed/X_train_preprocessed.npy")  # originalni, ne resampled
+y_train = np.load("data/processed/y_train.npy")
 
 X_val = np.load("data/processed/X_val_preprocessed.npy")   
 y_val = np.load("data/processed/y_val.npy") 
@@ -41,101 +41,104 @@ y_test  = np.load("data/processed/y_test.npy")
 # ========== 2. Modeli + gridovi za hiperparametre ==========
 # K - fold unakrsna validacija, k=5 -> deli na 5 delova
 # 5 puta se prolazi kroz trening, i na kraju se bira najbolji
-# cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+ #cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+# KORELACIJA: stabla odlucivanja i ansambl metode su znatno otpornije na koleralciju
+# jer kad stablo deli pod, samo ce u tom trenutku izabrati atribut koji bolje deli podatke
 
 # n_jobs -> koliko procesorskoh jezgra koristimo (-1 -> sva jezgra)
 models_config = {
     "Logistic Regression": {
         "model": LogisticRegression(max_iter=2000,random_state=42, class_weight="balanced",
-                                    C=0.1,
-                                    penalty='l1',
-                                    solver='liblinear'
+            #                        C=0.1,
+             #                       penalty='l1',
+              #                      solver='liblinear'
                                     ),
-        "grid" : {},
+  #      "grid" : {},
         # pod grid spadaju oni parametri za koje cemo probati grid da vidimo sta je naj
-#        "grid": {
+        "grid": {
             # jacina regularizacije (C je suprotno lambda parametru)
             # 10 -> oslanja se minimizaciju greske (overfitting) 
             # ako gledamo naspram lambde, kada ga nemamo - ne kaznjavamo greske i tada moze doci do overfittinga
             # tkd malo lambda -> overfitting -> za C je samo obrnuto
             # 00.1 -> jace kaznjava velike koeficijente (underfitting) -> jednostavniji model
             # 
-#            "C": [0.01, 0.1, 1, 10], 
+            "C": [0.01, 0.1, 1, 10], 
 
             # l1 -> LASSO REGURALIZACIJA-> regulator se zasniva na apsolutnoj vr koeficijenata
             # moze svesti koeficijente tacno na 0, pronadji koji atribut ne pomaze modelu i izabaci ga
             # l2 -> RIDGE REGURALIZACIJA > reg kaznjava velike koeficijente -> ()^2
             # smanjuje koeficijente, ali ih najcesce ne svodi na 0\
             # smanjuje se varijnsa
-#            "penalty": ["l1", "l2"],
+            "penalty": ["l1", "l2"],
             
             # nacin na koji se resava regularizacija
             # navodno neophodno zbog l1 regularizacije
             # oba nacina podrzavaju i l1 i l2
-#            "solver": ["liblinear", "saga"],
-#        },
+            "solver": ["liblinear", "saga"],
+        },
     },
     "KNN": {
         "model": KNeighborsClassifier(n_jobs=-1, 
-                                        n_neighbors=19,
-                                        p=1,
-                                       weights='distance'
+          #                              n_neighbors=19,
+           #                             p=1,
+            #                           weights='distance'
                                       ),
-        "grid" : {},
-#        "grid": {
+ #       "grid" : {},
+        "grid": {
             # izbor za k - br suseda (umesto Elbow metode)
             # malo K -> osetljiv na sum (overfitting)
             # veliko K -> niska varijnsa, veliki bias (underfitting)
             # bias - koliko je model pojednostavio problem
-#            "n_neighbors": [3, 5, 7, 9, 11, 15, 19, 25],
+            "n_neighbors": [3, 5, 7, 9, 11, 15, 19, 25],
 
             # tezina suseda:
             # uniform -> svi susedi iste tezine
             # distance -> blizi su znacajniji (imaju vecu tezinu)
-#            "weights": ["uniform", "distance"],
+            "weights": ["uniform", "distance"],
 
             # nacin kako racunamo rastojanje:
             # p=1 -> Manhattan -> ono sa apsolutnom vr
             # putanja samo ortogonalnim koracima (strelice || sa x i y-osama)
             # p=2 -> Euklidsko -> koren kvadrata
             # najbliza vazdusna putanja
-#            "p": [1, 2], 
-#        },
+            "p": [1, 2], 
+        },
     },
     "Decision Tree": {
         "model": DecisionTreeClassifier(random_state=42, class_weight="balanced",
-                                        # najbolji kriterijumi -> izabrani gridom
-                                        criterion='gini',
-                                        max_depth=5,
-                                        min_samples_leaf=1,
-                                        min_samples_split=2,
+              #                          # najbolji kriterijumi -> izabrani gridom
+               #                         criterion='gini',
+                #                        max_depth=5,
+                 #                       min_samples_leaf=1,
+                  #                      min_samples_split=2,
                                          ),
                                     
-        "grid" : {},
-#        "grid": {
+   #     "grid" : {},
+        "grid": {
             #velika -> overfitting, mala-> underfitting
-#            "max_depth": [5, 10, 15, 20, None],
+            "max_depth": [5, 10, 15, 20, None],
                 # sled put treba staviti samo [4, 5, 6]
             
             #min br uzoraka za podatak
-#           "min_samples_split": [2, 5, 10, 20],
+           "min_samples_split": [2, 5, 10, 20],
             # [15, 20, 25] (ostalo mozemo izostaviti)
             
             # min br uzoraka u listu
-#            "min_samples_leaf": [1, 2, 4, 8],
+            "min_samples_leaf": [1, 2, 4, 8],
 
             #za merenje cistoce:
             # Gini: mera pomesanosti klasa u cvoru
             # Entropija: mera neuredjenosti(nestigurnosti) u cvoru
             # max pomesanost 50%/50%, max uredjenost 100%/0%
-#            "criterion": ["gini", "entropy"],
+            "criterion": ["gini", "entropy"],
 
             # ima jos i max_features - max br uzoraka za analizu
 
             # daje iste rez za oba
 #            "class_weight": [None, "balanced"] 
         },       
-#    },
+    },
     # =========================== ANSAMBL METODE ============================
 
     # BAGGING METODA: vise razliciih stabala koji se treniraju nezavinsno, uz uvodjenje slucajnosti
@@ -144,24 +147,24 @@ models_config = {
     # kod klasifikacije -> svako stablo glasa za 1 klasu -> vecinska se bira
      "Random Forest": { 
         "model": RandomForestClassifier(random_state=42, n_jobs=-1, class_weight="balanced",
-                                        n_estimators=50,
-                                        max_depth=15,
-                                        min_samples_split=2,
-                                        min_samples_leaf=4,
-                                        max_features='log2'
+               #                         n_estimators=50,
+                #                        max_depth=15,
+                 #                       min_samples_split=2,
+                  #                      min_samples_leaf=4,
+                   #                     max_features='log2'
                                         ),
-        "grid" : {},
-#        "grid": {
+ #       "grid" : {},
+        "grid": {
             # veci broj stabala = stabilniji model, ali sporiji
-#            "n_estimators": [50, 100, 200],
+            "n_estimators": [50, 100, 200],
             
-#            "max_depth": [5, 10, 15, None],
+            "max_depth": [5, 10, 15, None],
             
             # min broj uzoraka za podelu cvora
-#            "min_samples_split": [2, 5, 10],
+            "min_samples_split": [2, 5, 10],
             
             # min broj uzoraka u listu
-#            "min_samples_leaf": [1, 2, 4],
+            "min_samples_leaf": [1, 2, 4],
             
             # br atributa koje razmatra za najbolju podelu (max br uzoraka za analizu)
             # manje atributa -> veca sansa da razlicita stabla biraju razlicite podele
@@ -170,7 +173,7 @@ models_config = {
             # 'log2' = log2(broj_atributa)
             # log(100) ~ 6,7 atributa 
             # None = svi atributi (moramo da poredimo sve atribute)
-#           "max_features": ['sqrt', 'log2', None],
+           "max_features": ['sqrt', 'log2', None],
             
             # OVO NISAM NI TESTIRALA (zbog vremena)
             # da li koristiti bootstrap uzorkovanje
@@ -179,7 +182,7 @@ models_config = {
             # npr: sqrt(100)=10, i bootstrap=true, on uzme najbolju komb atributa od tih 10 (mogu se ponavljati neki, ili da ih nema)
             # celo stablo -> stabla su slicinija, jedino max_features pravi razliku koji atributi se razmatraju
     #        "bootstrap": [True, False]
-#        },
+        },
     },
     
     # BOOSTING METODA: modeli se treniraju sekvencijalno, svaki sled popravlja greske prethonog
@@ -280,8 +283,8 @@ for name, cfg in models_config.items():
             best_model = model
         
         # Ispis svakih 20 kombinacija (da ne zatrpa terminal)
-        #if (i + 1) % 20 == 0 or (i + 1) == total:
-           # print(f"  [{i+1:3d}/{total}] Trenutno najbolji F1: {best_score:.4f}")
+        if (i + 1) % 20 == 0 or (i + 1) == total:
+            print(f"  [{i+1:3d}/{total}] Trenutno najbolji F1: {best_score:.4f}")
 
 
     print(f"\n NAJBOLJI PARAMETRI: {best_params}")

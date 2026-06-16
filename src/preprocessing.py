@@ -30,7 +30,7 @@ df = df.dropna()    #izbaci uzorak ako ima neku praznu kolonu
 df = df.drop_duplicates()  #izbaci duplikate
 
 # ukloni duration (poznat tek nakon zavrsetka poziva)
-df = df.drop(columns=['duration'])   
+df = df.drop(columns=['duration', 'day_of_week'])   
 
 """
     IZ MATRICE ZAVISNOSTI (KORELACIJE):
@@ -40,7 +40,7 @@ df = df.drop(columns=['duration'])
 
     ZAKLJUCAK: mogu se izbaciti 2/3 -> prenose istu info
 """
-df = df.drop(columns=['emp.var.rate', 'nr.employed'])
+df = df.drop(columns=['emp.var.rate', 'euribor3m'])      
 
 
 """ ========== PREPROCESSING ========== """
@@ -168,7 +168,7 @@ nominal_features = [
     'marital',
     'contact',
     'month',
-    'day_of_week',
+    #'day_of_week',
     'poutcome',
     'default',
     'housing',
