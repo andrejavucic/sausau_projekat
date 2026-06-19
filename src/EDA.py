@@ -8,7 +8,12 @@ def pokreni_edu():
     os.makedirs('EDA_figures', exist_ok=True)
 
     # ========== UCITAVANJE ==========
-    df = pd.read_csv('data/processed/bank-additional-cleaned.csv')
+    df = pd.read_csv('data/raw/bank-additional-full.csv', sep=';')
+    df = df.dropna()    
+    df = df.drop_duplicates()  
+
+    df['pdays'] = df['pdays'].replace(999, -1)
+    df['y_numeric'] = df['y'].map({'yes': 1, 'no': 0})
 
     sns.set_style("whitegrid")
     plt.rcParams['figure.figsize'] = (10, 6)
@@ -122,7 +127,7 @@ def pokreni_edu():
 
     # Stopa pretplate po poutcome
     print()
-    poutcome_rate = df.groupby('poutcome')['y'].mean() * 100
+    poutcome_rate = df.groupby('poutcome')['y'].apply(lambda x: (x == 'yes').mean() * 100)    
     print("\nStopa pretplate (%) po ishodu prethodne kampanje:")
     print(poutcome_rate.sort_values(ascending=False))
 
@@ -173,7 +178,7 @@ def pokreni_edu():
     # 4a. Po starosnim grupama
     df['age_group'] = pd.cut(df['age'], bins=[18, 30, 40, 50, 60, 100],
                               labels=['18-30', '30-40', '40-50', '50-60', '60+'])
-    subscription_rate = df.groupby('age_group', observed=True)['y'].mean() * 100
+    subscription_rate = df.groupby('age_group', observed=True)['y'].apply(lambda x: (x == 'yes').mean() * 100)
 
     plt.figure(figsize=(8, 6))
     subscription_rate.plot(kind='bar', color='skyblue', edgecolor='black')
@@ -188,7 +193,7 @@ def pokreni_edu():
     plt.close()
 
     # 4b. Po zanimanju (top 5)
-    job_rate = df.groupby('job')['y'].mean() * 100
+    job_rate = df.groupby('job')['y'].apply(lambda x: (x == 'yes').mean() * 100)
     top5_jobs = job_rate.nlargest(5)
 
     plt.figure(figsize=(10, 6))
@@ -211,15 +216,32 @@ def pokreni_edu():
     numeric_cols = ['age', 'campaign', 'pdays', 'previous', 'emp.var.rate',
                     'cons.price.idx', 'cons.conf.idx', 'euribor3m', 'nr.employed']
 
-    corr_df = df[numeric_cols + ['y']].copy()
+    corr_df = df[numeric_cols + ['y_numeric']].copy()
 
     plt.figure(figsize=(10, 8))
     corr_matrix = corr_df.corr()
     sns.heatmap(corr_matrix, annot=True, fmt='.2f', cmap='RdBu_r', center=0)
     plt.title('Korelaciona matrica', fontsize=14, fontweight='bold')
     plt.tight_layout()
-    plt.savefig('EDA_figures/09_correlation_heatmap.png', dpi=150)
+    plt.savefig('EDA_figures/correlation_heatmap.png', dpi=150)
     plt.close()
+
+
+
+    # Stopa pretplate po danima u nedelji
+    plt.figure(figsize=(10, 6))
+    day_order = ['mon', 'tue', 'wed', 'thu', 'fri']
+    day_order = [d for d in day_order if d in df['day_of_week'].unique()]
+    sns.countplot(data=df, x='day_of_week', hue='y', order=day_order,
+                palette=['skyblue', 'salmon'])
+    plt.title('Pretplata po danima u nedelji', fontsize=14, fontweight='bold')
+    plt.xlabel('Dan u nedelji')
+    plt.ylabel('Broj klijenata')
+    plt.legend(title='Pretplata', labels=['Ne', 'Da'])
+    plt.tight_layout()
+    plt.savefig('EDA_figures/12_day_of_week_distribution.png', dpi=150)
+    plt.close()
+
 
 if __name__ == "__main__":
     pokreni_edu()

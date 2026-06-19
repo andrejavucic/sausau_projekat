@@ -44,27 +44,22 @@ df = df.drop(columns=['emp.var.rate', 'euribor3m'])
 
 
 """ ========== PREPROCESSING ========== """
-# ------------ PDAYS --------------
-# pravimo kolonu pdays_contatcet: 1 kontaktiran/ 0 nije (onaj sto ima 999)
-# dobijamo info ko je stari, a ko novi klijent
-df['pdays_contacted'] = (df['pdays'] != 999).astype(int)
+# ------------ PDAYS -------------
 # Postavljamo 999 na -1 
 df['pdays'] = df['pdays'].replace(999, -1)
 print("pojavljivanja pdays=999 : ", (df['pdays'] == 999).sum())     #nakon izbacivanja -> 0 
 print(f"pdays vrednosti: min = {df['pdays'].min()}, max = {df['pdays'].max()}")   #min i max vr
-print(f"Broj kontaktiranih: {df['pdays_contacted'].sum()}") #br kontaktiranih -> 1515
 print()
 
 # prebroj koliko imamo unkown
 # nema ih u month, poutcome i contact
 # u ostalim ih ima podosta (najmanje u martial -> 80)
-#categorical_cols = ["job", "marital", "education", "default", "housing", "loan","contact", "poutcome", "month" ]
-#print((df[categorical_cols] == 'unknown').sum())
+categorical_cols = ["job", "marital", "education", "default", "housing", "loan","contact", "poutcome", "month" ]
+print((df[categorical_cols] == 'unknown').sum())
 
 #poencijalni outlineri -> ne utice na izlaz (nema granica za yes po godinama)
-#print("Maloletni: ", df.loc[df['age'] < 18, ['age', 'y']])  
-#print("Prestari: ", df.loc[df['age'] > 85, ['age', 'y']])
-#print("Prestari: ", df.loc[df['age'] > 90, ['age', 'y']])
+print("Maloletni: ", df.loc[df['age'] < 18, ['age', 'y']])  
+print("Prestari: ", df.loc[df['age'] > 90, ['age', 'y']])
 
 """
 ukloni previse slucajeva: 
@@ -131,7 +126,6 @@ X = df.drop(columns=['y'])
 y = df['y']
 print()
 
-
 # stratify=y  balansira odnos yes/no u train i test
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
@@ -139,7 +133,9 @@ X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, s
 
 print("Pre enkodiranja:")
 print("X_train:", X_train.shape)
-print("y_train:", y_train.shape)
+print("X_val:", X_val.shape)
+print("X_test:", X_test.shape)
+#print("y_train:", y_train.shape)
 print()
 
 # -------------- ANOMALIJE ---------------
@@ -185,10 +181,10 @@ preprocessor = ColumnTransformer(
             OneHotEncoder(drop='first', handle_unknown='ignore', sparse_output=False),
             nominal_features
         ),
-        # SKLARIRANJE - za odredjene modele 
+        # SKLARIRANJE 
         (
-            'numeric',  # DODATI OVAJ TRANSFORMER ZA SKALIRANJE
-            StandardScaler(),  # ili MinMaxScaler(), RobustScaler()
+            'numeric',  
+            StandardScaler(), 
             numeric_cols    #samo kolone sa br vr
         )
     ],
@@ -216,25 +212,6 @@ print(f"Pre SMOTE: {X_train_preprocessed.shape}, DA={sum(y_train==1)}, NE={sum(y
 print(f"Posle SMOTE: {X_train_resampled.shape}, DA={sum(y_train_resampled==1)}, NE={sum(y_train_resampled==0)}")
 print()
 
-"""
--> PROVERA DA LI SU SVI FOLAT64 -> JESU
--> nz ni sto mi onda pravi problem pri pokretanju treninga
-
-print("\n" + "="*50)
-print("PROVERA TIPOVA PRE ČUVANJA:")
-print("="*50)
-print(f"X_train_preprocessed dtype: {X_train_preprocessed.dtype}")
-print(f"X_train_resampled dtype: {X_train_resampled.dtype}")
-print(f"X_val_preprocessed dtype: {X_val_preprocessed.dtype}")
-print(f"X_test_preprocessed dtype: {X_test_preprocessed.dtype}")
-
-# Ako je object, onda:
-if X_train_resampled.dtype == object:
-    print("⚠️ X_train_resampled je object tip - treba konvertovati!")
-    X_train_resampled = X_train_resampled.astype(np.float32)
-    print("✅ Konvertovano u float32")
-"""
-
 # ------------- CUVANJE PODATAKA ----------------
 df.to_csv('data/processed/bank-additional-cleaned.csv', index=False)
 
@@ -251,7 +228,6 @@ test_df = X_test.copy()
 test_df['y'] = y_test
 test_df.to_csv('data/processed/bank-additional-test.csv', index=False)
 
-
 joblib.dump(preprocessor, 'preprocessors/preprocessor.pkl')    #sacuvaj preprocesor
 #joblib.dump(iso_forest, 'preprocessors/isolation_forest.pkl') #sacuvaj isolatin forest model
 
@@ -259,9 +235,6 @@ joblib.dump(preprocessor, 'preprocessors/preprocessor.pkl')    #sacuvaj preproce
 feature_names = preprocessor.get_feature_names_out()
 np.save('data/processed/feature_names.npy', feature_names)
 
-# .astype(np.float32)   pretvara brojeve u float32 (decimalni broj, 32 bita)
-# zbog nekih object problema kada se pokrece trening -> pravilo mi prob nakon smote
-# iako smo pre podele sve enkodirali, ali navodno zbog smote moze nest da se zakomplikuje
 np.save('data/processed/X_train_preprocessed.npy', X_train_preprocessed)
 np.save('data/processed/y_train.npy', y_train)
 
