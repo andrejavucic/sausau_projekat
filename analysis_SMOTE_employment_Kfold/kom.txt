@@ -1,3 +1,0 @@
-- uvedena k-fold unaksna validacija
-- daje stabilnije rezultate!! 
--ali manje vise je slicno kao i bez k-fold, samo da racunamo sa euribor3m (jer smo ovde jedino stavili nr.employment)

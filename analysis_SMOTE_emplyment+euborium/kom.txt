@@ -1,4 +1,0 @@
-- ukljucen employment i izbacen day_of_week
-- koriscen smote
-
-- buk dobijem losije rezultate

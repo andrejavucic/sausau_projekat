@@ -1,6 +1,0 @@
-Model,Best_params,Val_F1,Accuracy,Precision,Recall,F1,ROC-AUC
-Random Forest,"{'max_depth': 10, 'max_features': None, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 100}",0.5013,0.8567,0.4118,0.6336,0.4992,0.7904
-Logistic Regression,"{'C': 0.01, 'penalty': 'l1', 'solver': 'liblinear'}",0.443,0.8366,0.3721,0.6552,0.4746,0.801
-KNN,"{'n_neighbors': 5, 'p': 1, 'weights': 'uniform'}",0.3639,0.8975,0.5897,0.2974,0.3954,0.7639
-Decision Tree,"{'criterion': 'gini', 'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}",0.4659,0.7458,0.2569,0.6638,0.3704,0.7591
-Gradient Boosting,{},0.3077,0.9026,0.6886,0.2478,0.3645,0.8113

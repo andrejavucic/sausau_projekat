@@ -127,13 +127,12 @@ y = df['y']
 print()
 
 # stratify=y  balansira odnos yes/no u train i test
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
-# → 80/10/10
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+#X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
+# → 80/20
 
 print("Pre enkodiranja:")
 print("X_train:", X_train.shape)
-print("X_val:", X_val.shape)
 print("X_test:", X_test.shape)
 #print("y_train:", y_train.shape)
 print()
@@ -193,12 +192,12 @@ preprocessor = ColumnTransformer(
 
 # transform - primeni naucena pravila (pozivamo enkoder)
 X_train_preprocessed = preprocessor.fit_transform(X_train)
-X_val_preprocessed = preprocessor.transform(X_val)
+#X_val_preprocessed = preprocessor.transform(X_val)
 X_test_preprocessed = preprocessor.transform(X_test)
 
 # pokaze kako je skocio br kolona (zbog enkodiranja)
 print("Train shape nakon preprocessing-a:", X_train_preprocessed.shape)
-print("Validation shape nakon preprocessing-a:", X_val_preprocessed.shape)
+#print("Validation shape nakon preprocessing-a:", X_val_preprocessed.shape)
 print("Test shape nakon preprocessing-a:", X_test_preprocessed.shape)
 print()
 
@@ -220,9 +219,9 @@ train_df = X_train.copy()
 train_df['y'] = y_train
 train_df.to_csv('data/processed/bank-additional-train.csv', index=False)
 
-val_df = X_val.copy()
-val_df['y'] = y_val
-val_df.to_csv('data/processed/bank-additional-val.csv', index=False)
+#val_df = X_val.copy()
+#val_df['y'] = y_val
+#val_df.to_csv('data/processed/bank-additional-val.csv', index=False)
 
 test_df = X_test.copy()
 test_df['y'] = y_test
@@ -241,8 +240,8 @@ np.save('data/processed/y_train.npy', y_train)
 np.save('data/processed/X_train_resampled.npy', X_train_resampled)
 np.save('data/processed/y_train_resampled.npy', y_train_resampled)
 
-np.save('data/processed/X_val_preprocessed.npy', X_val_preprocessed)   
-np.save('data/processed/y_val.npy', y_val.values)
+#np.save('data/processed/X_val_preprocessed.npy', X_val_preprocessed)   
+#np.save('data/processed/y_val.npy', y_val.values)
 
 np.save('data/processed/X_test_preprocessed.npy', X_test_preprocessed)
 np.save('data/processed/y_test.npy', y_test.values)

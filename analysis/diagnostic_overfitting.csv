@@ -1,0 +1,6 @@
+Model,Train F1 (orig),Test F1,Gap,Status,Recall
+Logistic Regression,0.4321,0.4478,-0.0157,✅ Dobra generalizacija,0.6562
+KNN,0.4863,0.4081,0.0782,✅ Generalizuje dobro,0.653
+Decision Tree,0.4728,0.477,-0.0042,✅ Dobra generalizacija,0.5754
+Random Forest,0.4619,0.4747,-0.0127,✅ Dobra generalizacija,0.6261
+Gradient Boosting,0.4587,0.4722,-0.0135,✅ Dobra generalizacija,0.5948

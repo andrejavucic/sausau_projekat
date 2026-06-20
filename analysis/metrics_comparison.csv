@@ -1,6 +1,0 @@
-Model,Best_params,CV_F2,Accuracy,Precision,Recall,F1,F2,ROC-AUC
-Logistic Regression,{},0.5331,0.8242,0.3533,0.6746,0.4637,0.5708,0.8035
-Random Forest,{},0.5354,0.8477,0.3921,0.6379,0.4856,0.5668,0.7979
-Gradient Boosting,"{'model__learning_rate': 0.03, 'model__max_depth': 2, 'model__min_samples_leaf': 1, 'model__min_samples_split': 2, 'model__n_estimators': 100, 'model__subsample': 0.8}",0.5232,0.8565,0.4097,0.6207,0.4936,0.5627,0.8042
-Decision Tree,{},0.521,0.8643,0.4268,0.597,0.4978,0.5529,0.7787
-KNN,{},0.511,0.7982,0.3118,0.6552,0.4225,0.5369,0.7767
