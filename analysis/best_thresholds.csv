@@ -1,6 +1,0 @@
-Model,Best_Threshold,Best_F2,Best_Recall,Default_F2,Default_Recall,F2_Improvement,Recall_Improvement
-Gradient Boosting,0.4,0.5541,0.7144,0.5389,0.5948,0.0152,0.1196
-Logistic Regression,0.4,0.5296,0.7274,0.5532,0.6562,-0.0237,0.0711
-KNN,0.4,0.5121,0.7274,0.5266,0.653,-0.0145,0.0744
-Random Forest,0.4,0.509,0.764,0.5552,0.6261,-0.0462,0.1379
-Decision Tree,0.3,0.4725,0.7489,0.5316,0.5754,-0.0591,0.1735

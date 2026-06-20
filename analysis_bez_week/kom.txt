@@ -1,9 +1,0 @@
-- sve istestirano na podeli 80/10/10 i bez atributa day_of_week i jos dva ekonomska
-- sa smote 
-
-- probala sam pretragu parametra za sve osim boosting-a -> to je predugo traje
-- isto tako predugo traje i svm -> nisam do kraja istrenirala
-
-- nisam radila uklanjanje otlinera (msm da nema ni potrebe)
-
-- KNN -> Overfitting

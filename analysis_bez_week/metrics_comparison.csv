@@ -1,4 +1,0 @@
-Model,Best_params,Val_F1,Accuracy,Precision,Recall,F1,ROC-AUC
-Logistic Regression,"{'C': 0.1, 'penalty': 'l1', 'solver': 'liblinear'}",0.439,0.8249,0.3541,0.6724,0.4639,0.7971
-Decision Tree,"{'criterion': 'gini', 'max_depth': 5, 'min_samples_leaf': 1, 'min_samples_split': 2}",0.4766,0.8749,0.4391,0.3966,0.4168,0.7396
-KNN,"{'n_neighbors': 19, 'p': 1, 'weights': 'distance'}",0.403,0.77,0.2814,0.6703,0.3964,0.7566

@@ -1,6 +1,0 @@
-Rank,Model,Default_F2,Default_Recall,Default_F1,CV_F2,ROC_AUC,Best_Threshold,Best_F2
-1,Random Forest,0.5552,0.6261,0.4747,0.5354,0.7951,0.4,0.509
-2,Logistic Regression,0.5532,0.6562,0.4478,0.5331,0.7954,0.4,0.5296
-3,Gradient Boosting,0.5389,0.5948,0.4722,0.5232,0.7971,0.4,0.5541
-4,Decision Tree,0.5316,0.5754,0.477,0.521,0.7748,0.3,0.4725
-5,KNN,0.5266,0.653,0.4081,0.511,0.7725,0.4,0.5121

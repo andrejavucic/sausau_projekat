@@ -1,0 +1,10 @@
+Model,Varijanta,Br_atributa,Accuracy,Precision,Recall,F1,ROC-AUC
+Logistic Regression,Top 10,10,0.8118,0.3328,0.667,0.444,0.7957
+Logistic Regression,Top 20,20,0.8131,0.3335,0.6595,0.443,0.7958
+Logistic Regression,Svi atributi,46,0.8176,0.3398,0.6562,0.4478,0.7954
+Random Forest,Top 10,10,0.8539,0.4023,0.6099,0.4848,0.7977
+Random Forest,Top 20,20,0.8511,0.3975,0.6228,0.4853,0.798
+Random Forest,Svi atributi,46,0.8439,0.3822,0.6261,0.4747,0.7951
+Gradient Boosting,Top 10,10,0.8499,0.3912,0.597,0.4727,0.7972
+Gradient Boosting,Top 20,20,0.8502,0.3915,0.5948,0.4722,0.7971
+Gradient Boosting,Svi atributi,46,0.8502,0.3915,0.5948,0.4722,0.7971
