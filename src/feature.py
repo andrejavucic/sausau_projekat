@@ -22,9 +22,6 @@ os.makedirs("analysis/figures", exist_ok=True)
 sns.set_style("whitegrid")
 
 # ========== 1. UČITAVANJE PODATAKA ==========
-X_train = np.load("data/processed/X_train_resampled.npy")
-y_train = np.load("data/processed/y_train_resampled.npy")
-
 X_test = np.load("data/processed/X_test_preprocessed.npy")
 y_test = np.load("data/processed/y_test.npy")
 
@@ -36,12 +33,9 @@ try:
     print(f"✅ Učitano {len(feature_names)} naziva atributa")
 except FileNotFoundError:
     print("⚠️ feature_names.npy ne postoji! Koristim generičke nazive.")
-    feature_names = [f"Atribut_{i}" for i in range(X_train.shape[1])]
 
 n_features = len(feature_names)
 print(f"\n📊 Ukupan broj atributa: {n_features}")
-print(f"📊 Train skup: {X_train.shape[0]} uzoraka")
-print(f"📊 Test skup: {X_test.shape[0]} uzoraka")
 
 # ========== 3. UČITAVANJE MODELA ==========
 models_dir = "models"
@@ -261,8 +255,8 @@ print("TESTIRANJE PERFORMANSI (F2 i RECALL)")
 print("="*60)
 
 # Učitaj ORIGINALNE trening podatke (bez SMOTE-a)
-X_train_orig = np.load("data/processed/X_train_preprocessed.npy")
-y_train_orig = np.load("data/processed/y_train.npy")
+X_train_pp = np.load("data/processed/X_train_preprocessed.npy")
+y_train_pp = np.load("data/processed/y_train.npy")
 
 TOP_OPTIONS = [10, 20]
 comparison_results = []
@@ -327,7 +321,7 @@ for model_name, model in models.items():
         ])
         
         # Treniraj na ORIGINALNIM podacima (bez SMOTE-a)
-        pipe_top.fit(X_train_orig[:, top_k_indices], y_train_orig)
+        pipe_top.fit(X_train_pp[:, top_k_indices], y_train_pp)
         
         # Predikcija na test skupu
         y_pred_top = pipe_top.predict(X_test[:, top_k_indices])
@@ -351,7 +345,7 @@ for model_name, model in models.items():
         ('smote', SMOTE(random_state=42)),
         ('model', base_model.__class__(**params))
     ])
-    pipe_all.fit(X_train_orig, y_train_orig)  # ORIGINALNI podaci
+    pipe_all.fit(X_train_pp, y_train_pp) 
     
     y_pred_all = pipe_all.predict(X_test)
     y_prob_all = pipe_all.predict_proba(X_test)[:, 1]
