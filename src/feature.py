@@ -10,6 +10,8 @@ from sklearn.metrics import (
     accuracy_score, f1_score, roc_auc_score,
     recall_score, precision_score, fbeta_score
 )
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.over_sampling import SMOTE
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -258,6 +260,10 @@ print("\n" + "="*60)
 print("TESTIRANJE PERFORMANSI (F2 i RECALL)")
 print("="*60)
 
+# Učitaj ORIGINALNE trening podatke (bez SMOTE-a)
+X_train_orig = np.load("data/processed/X_train_preprocessed.npy")
+y_train_orig = np.load("data/processed/y_train.npy")
+
 TOP_OPTIONS = [10, 20]
 comparison_results = []
 
@@ -270,12 +276,11 @@ for model_name, model in models.items():
     
     model_order.append(model_name)
     imp_dict = importance_dict[model_name]
-    # Koristimo max_norm za selekciju atributa (isti efekat kao sortiranje)
     imp_norm = imp_dict['max_norm']
     
     print(f"\n🔍 {model_name}:")
     
-    # Parametri za novi model
+    # Parametri ZA NOVI MODEL (isti kao u train.py)
     if model_name == "Logistic Regression":
         params = {
             "C": 0.01,
@@ -284,7 +289,8 @@ for model_name, model in models.items():
             "max_iter": 2000,
             "random_state": 42
         }
-        model_all = LogisticRegression(**params)
+        # KORISTI IMBPIPELINE (SMOTE UNUTAR PIPELINE-A)
+        base_model = LogisticRegression(**params)
         
     elif model_name == "Random Forest":
         params = {
@@ -296,7 +302,7 @@ for model_name, model in models.items():
             "random_state": 42,
             "n_jobs": -1
         }
-        model_all = RandomForestClassifier(**params)
+        base_model = RandomForestClassifier(**params)
         
     elif model_name == "Gradient Boosting":
         params = {
@@ -308,22 +314,24 @@ for model_name, model in models.items():
             "subsample": 0.8,
             "random_state": 42
         }
-        model_all = GradientBoostingClassifier(**params)
+        base_model = GradientBoostingClassifier(**params)
     
-    # Testiraj Top N
+    # Testiraj Top N (KORISTI IMBPIPELINE ZA SVAKI SLUČAJ)
     for top_k in TOP_OPTIONS:
         top_k_indices = np.argsort(imp_norm)[::-1][:top_k]
         
-        if model_name == "Logistic Regression":
-            model_top = LogisticRegression(**params)
-        elif model_name == "Random Forest":
-            model_top = RandomForestClassifier(**params)
-        elif model_name == "Gradient Boosting":
-            model_top = GradientBoostingClassifier(**params)
+        # Pipeline sa SMOTE (isto kao u train.py)
+        pipe_top = ImbPipeline([
+            ('smote', SMOTE(random_state=42)),
+            ('model', base_model.__class__(**params))  # Novi model za svaki top_k
+        ])
         
-        model_top.fit(X_train[:, top_k_indices], y_train)
-        y_pred_top = model_top.predict(X_test[:, top_k_indices])
-        y_prob_top = model_top.predict_proba(X_test[:, top_k_indices])[:, 1]
+        # Treniraj na ORIGINALNIM podacima (bez SMOTE-a)
+        pipe_top.fit(X_train_orig[:, top_k_indices], y_train_orig)
+        
+        # Predikcija na test skupu
+        y_pred_top = pipe_top.predict(X_test[:, top_k_indices])
+        y_prob_top = pipe_top.predict_proba(X_test[:, top_k_indices])[:, 1]
         
         metrics_top = {
             'Model': model_name,
@@ -338,10 +346,15 @@ for model_name, model in models.items():
         comparison_results.append(metrics_top)
         print(f"   Top {top_k:2d}: F2={metrics_top['F2']:.4f}, Recall={metrics_top['Recall']:.4f}")
     
-    # Testiraj SVE
-    model_all.fit(X_train, y_train)
-    y_pred_all = model_all.predict(X_test)
-    y_prob_all = model_all.predict_proba(X_test)[:, 1]
+    # Testiraj SVE (opet sa ImbPipeline)
+    pipe_all = ImbPipeline([
+        ('smote', SMOTE(random_state=42)),
+        ('model', base_model.__class__(**params))
+    ])
+    pipe_all.fit(X_train_orig, y_train_orig)  # ORIGINALNI podaci
+    
+    y_pred_all = pipe_all.predict(X_test)
+    y_prob_all = pipe_all.predict_proba(X_test)[:, 1]
     
     metrics_all = {
         'Model': model_name,

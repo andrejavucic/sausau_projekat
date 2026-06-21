@@ -1,10 +1,10 @@
-Model,Varijanta,Br_atributa,Accuracy,Precision,Recall,F1,ROC-AUC
-Logistic Regression,Top 10,10,0.8118,0.3328,0.667,0.444,0.7957
-Logistic Regression,Top 20,20,0.8131,0.3335,0.6595,0.443,0.7958
-Logistic Regression,Svi atributi,46,0.8176,0.3398,0.6562,0.4478,0.7954
-Random Forest,Top 10,10,0.8539,0.4023,0.6099,0.4848,0.7977
-Random Forest,Top 20,20,0.8511,0.3975,0.6228,0.4853,0.798
-Random Forest,Svi atributi,46,0.8439,0.3822,0.6261,0.4747,0.7951
-Gradient Boosting,Top 10,10,0.8499,0.3912,0.597,0.4727,0.7972
-Gradient Boosting,Top 20,20,0.8502,0.3915,0.5948,0.4722,0.7971
-Gradient Boosting,Svi atributi,46,0.8502,0.3915,0.5948,0.4722,0.7971
+Model,Varijanta,Br_atributa,Accuracy,Precision,Recall,F2,ROC-AUC
+Logistic Regression,Top 10,10,0.811,0.3315,0.667,0.5548,0.7955
+Logistic Regression,Top 20,20,0.8129,0.3332,0.6595,0.5515,0.7948
+Logistic Regression,Svi atributi,46,0.8176,0.3398,0.6562,0.5532,0.7954
+Random Forest,Top 10,10,0.8445,0.3835,0.6261,0.5558,0.8017
+Random Forest,Top 20,20,0.8509,0.3978,0.6293,0.5637,0.7995
+Random Forest,Svi atributi,46,0.8439,0.3822,0.6261,0.5552,0.7951
+Gradient Boosting,Top 10,10,0.8407,0.3771,0.6347,0.5584,0.7962
+Gradient Boosting,Top 20,20,0.8476,0.3909,0.6315,0.5623,0.7952
+Gradient Boosting,Svi atributi,46,0.8502,0.3915,0.5948,0.5389,0.7971

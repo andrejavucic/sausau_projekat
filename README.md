@@ -21,7 +21,7 @@ sausau_projekat/
 │   └── figures/                     # Grafikoni: ROC, confusion matrice, overfitting, itd.
 ├── EDA_figures/                     # Grafikoni iz eksplorativne analize
 ├── main.py                          # Ulazna tačka (placeholder)
-├── app.py                           # FastAPI REST API za predikcije
+├── ui.py                            # Streamlit korisnički interfejs za predikcije
 ├── pyproject.toml                   # Konfiguracija projekta i zavisnosti
 └── README.md
 ```
@@ -110,17 +110,23 @@ Gradient Boosting          0.5389     0.5948     0.3915     0.4722     0.7971
 - **Heatmap** poređenja važnosti atributa između modela (Top 20, normalizovano na sumu=1)
 - **Testiranje performansi** sa Top 10, Top 20 i svim atributima — poređenje F2 i Recall skora
 
-### 7. API (`app.py`)
+### 7. Streamlit UI (`ui.py`)
 
-FastAPI aplikacija koja servira 2 najbolja modela kroz REST API:
+Interaktivni korisnički interfejs za predikcije, napravljen u **Streamlit**-u. Omogućava korisniku da ručno unese podatke o klijentu i dobije predikciju bez potrebe za slanjem HTTP zahteva ili korišćenjem alata poput `curl`-a.
 
-| Endpoint | Metoda | Opis |
-|----------|--------|------|
-| `/` | `GET` | Početna stranica sa informacijama o API-ju |
-| `/health` | `GET` | Provera da li su preprocessor i modeli učitani |
-| `/models` | `GET` | Lista modela, opisi strategija, tabela metrika |
-| `/predict` | `POST` | Predikcija za jednog klijenta |
-| `/predict/batch` | `POST` | Batch predikcija za više klijenata (max 1000) |
+#### Funkcionalnosti
+
+- **Selectbox** padajući meniji za sve kategorijske atribute:
+  - *Lični podaci:* `job` (12 opcija), `marital` (4 opcije), `education` (8 opcija)
+  - *Finansijski podaci:* `default`, `housing`, `loan` (po 3 opcije)
+  - *Kontakt kampanja:* `contact` (2 opcije), `month` (12 opcija), `poutcome` (3 opcije)
+- **Number input** polja za 7 numeričkih atributa sa definisanim opsezima i podrazumevanim vrednostima (`age`, `campaign`, `pdays`, `previous`, `cons.price.idx`, `cons.conf.idx`, `nr.employed`)
+- **Selectbox za strategiju** (`max_f2` / `max_recall`) sa tooltip objašnjenjem
+- **Predict dugme** koje pokreće predikciju i prikazuje:
+  - YES/NO predikciju sa emoji indikatorom
+  - Verovatnoću pretplate (YES) i odbijanja (NO) u decimalnom i procentualnom formatu
+  - **Progress bar** za vizuelni prikaz verovatnoće
+  - Tip modela koji je korišćen za predikciju
 
 #### Strategije
 
@@ -129,72 +135,13 @@ FastAPI aplikacija koja servira 2 najbolja modela kroz REST API:
 | `max_f2` | `best_f2_model` | Balansira Recall i Precision (Recall ×2), hvata što više potencijalnih klijenata uz prihvatljiv broj lažnih pozitiva |
 | `max_recall` | `best_recall_model` | Maksimizira Recall bez obzira na Precision — banka ne želi da propusti nijednog klijenta |
 
-#### Ulazni podaci (JSON)
-
-Svaki zahtev sadrži 16 atributa klijenta + obavezno polje `strategy`:
-
-```json
-{
-  "age": 42,
-  "job": "admin.",
-  "marital": "married",
-  "education": "university.degree",
-  "default": "no",
-  "housing": "yes",
-  "loan": "no",
-  "contact": "cellular",
-  "month": "may",
-  "poutcome": "nonexistent",
-  "campaign": 1,
-  "pdays": -1,
-  "previous": 0,
-  "cons.price.idx": 93.994,
-  "cons.conf.idx": -40.5,
-  "nr.employed": 5099.1,
-  "strategy": "max_f2"
-}
-```
-
-#### Izlazni podaci
-
-API vraća predikciju izabranog modela **i** alternativnog modela za poređenje:
-
-```json
-{
-  "input": { ... },
-  "strategy": "max_f2",
-  "strategy_description": "F2 strategija — ...",
-  "chosen_prediction": {
-    "model": "Najbolji F2 Model",
-    "prediction": "yes",
-    "prediction_code": 1,
-    "probability_yes": 0.7234,
-    "probability_no": 0.2766
-  },
-  "alternative_prediction": {
-    "model": "Najbolji Recall Model",
-    "prediction": "yes",
-    "prediction_code": 1,
-    "probability_yes": 0.6891,
-    "probability_no": 0.3109
-  }
-}
-```
-
-#### Pokretanje API-ja
+#### Pokretanje
 
 ```bash
-# Pokreni API server (automatski se otvara na http://localhost:8000)
-python app.py
-
-# Interaktivna Swagger dokumentacija
-# http://localhost:8000/docs
-
-# Health check
-curl http://localhost:8000/health
+streamlit run ui.py
 ```
 
-> **Napomena:** API zahteva da su prethodno pokrenuti `src/preprocessing.py` i `src/train.py` kako bi postojali `preprocessor.pkl` i trenirani modeli u `models/` direktorijumu.
+> **Napomena:** UI zahteva da su prethodno pokrenuti `src/preprocessing.py` i `src/train.py` kako bi postojali `preprocessor.pkl` i trenirani modeli u `models/` direktorijumu.
 
 ## Kako pokrenuti
 
@@ -243,11 +190,3 @@ python -m src.feature
 | `imbalanced-learn` | SMOTE oversampling |
 | `matplotlib`, `seaborn` | Vizualizacija |
 | `joblib` | Serijalizacija modela i preprocesora |
-
-## Autor
-
-**Andreja Vucic** — [andrejavucic](https://github.com/andrejavucic)
-
-## Licenca
-
-MIT
